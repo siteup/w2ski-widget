@@ -1,5 +1,5 @@
 # w2ski-widget
-This is a free WordPress plugin that provides easy integration with the Where2Ski.net widget. 
+This is a free WordPress plugin that provides easy integration with the http://Where2Ski.net widget. 
 
 The plugin provides the user with:
 - a widget to be placed on any widget area the theme might have
