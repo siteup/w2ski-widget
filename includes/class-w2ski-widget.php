@@ -198,9 +198,8 @@ class W2Ski_Widget {
     }
     
     function w2ski_load_widget() {
-        //if ($this->check_for_key() == true) { register_widget( 'W2S_Widget' ); }
-        //else return;
-        register_widget( 'W2S_Widget' );
+        if ( ($this->check_for_key() == true) || ($this->check_for_link() == true) ) { register_widget( 'W2S_Widget' ); }
+        else return;
         
     }
    
