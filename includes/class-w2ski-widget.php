@@ -32,12 +32,23 @@ class W2Ski_Widget {
         
     }
     
+    public function check_for_link(){
+        $options = get_option( 'w2ski_settings' );
+        if ( isset( $options['w2ski_text_field_1'] ) ){
+            return true;
+        }
+        else return false;
+    }
+    
     public function set_widget_frame(){
-        $widget_frame_part1 = "<iframe src='http://www.where2ski.net/widget/?sig=";
-        $widget_frame_part2 = "' width='300px' height='400px' frameBorder='0'></iframe>"; 
+        $widget_frame_part1 = "<iframe style='float:left;' src='http://www.where2ski.net/widget/?sig=";
+        $widget_frame_part2 = "' width='300px' height='400px' frameBorder='0'></iframe>";
+        if ( $this->check_for_link() == false ){ $widget_frame_link = ""; }
+            else { $widget_frame_link = "<a href='http://where2ski.net' style='float:left; clear:both'>Checkout Where2Ski.net</a> "; }
+        
         $the_key = new W2Ski_key;
         $widget_public_key = $the_key->fetch_API_key();
-        $this->widget_frame = $widget_frame_part1 . $widget_public_key . $widget_frame_part2;
+        $this->widget_frame = $widget_frame_part1 . $widget_public_key . $widget_frame_part2 . $widget_frame_link;
     }
     
     
@@ -87,10 +98,25 @@ class W2Ski_Widget {
             register_setting(  'w2ski_widget', 'w2ski_settings' );
         
             add_settings_section(
+                'w2ski_pluginPage_link_section',
+                __('Widget Link', 'w2s-stp'),
+                array( $this, 'w2ski_settings_section_link_callback'),
+                'w2ski_widget'
+            );
+        
+            add_settings_section(
               'w2ski_pluginPage_section',
                 __('Widget Activation', 'w2s-stp'),
                 array( $this, 'w2ski_settings_section_callback'),
                 'w2ski_widget'
+            );
+        
+            add_settings_field(
+                'w2ski_text_field_1',
+                __( 'Allow link credit', 'w2s-stp'),
+                array( $this, 'w2ski_text_field_1_render' ),
+                'w2ski_widget',
+                'w2ski_pluginPage_link_section'
             );
         
             add_settings_field(
@@ -102,15 +128,28 @@ class W2Ski_Widget {
             );
     }
     
+    function w2ski_settings_section_link_callback(){
+        echo __( 'Please support this plugin by letting allowing a credit link after the widget. Thank you for your support', 'w2s-stp' );
+    }
     
     function w2ski_settings_section_callback(){
         echo __( 'You need to contact the Where2Ski.net website admin and get an activation code from him.', 'w2s-stp' );
     }
     
+    function w2ski_text_field_1_render(){
+            $options = get_option( 'w2ski_settings' );
+            if ( !isset( $options['w2ski_text_field_1'] )) {
+                $options['w2ski_text_field_1'] = 0;
+            }
+        
+            $html = '<input type="checkbox" name="w2ski_settings[w2ski_text_field_1]" value="1"' . checked( 1, $options['w2ski_text_field_1'], false ) . '/>';
+           echo $html;
+    }
+    
     function w2ski_text_field_0_render(){
             $options = get_option( 'w2ski_settings' );
             ?>
-            <input type='text' name='w2ski_settings[w2ski_text_field_0]' value='<?php echo $options['w2ski_text_field_0']; ?>'>
+            <input type='text' name='w2ski_settings[w2ski_text_field_0]' value='<?php echo $options['w2ski_text_field_0'];?>'>
             <?php 
         
     }
