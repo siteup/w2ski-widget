@@ -28,36 +28,52 @@ class W2Ski_Widget {
         if ( $options['w2ski_text_field_0'] == '' ){
             return false;
         }
-        else return true;
-        
+        else return true;    
     }
     
-    public function set_widget_frame(){
-        $widget_frame_part1 = "<iframe src='http://www.where2ski.net/widget/?sig=";
-        $widget_frame_part2 = "' width='300px' height='400px' frameBorder='0'></iframe>"; 
+    private function check_for_link(){
+        $options = get_option( 'w2ski_settings' );
+        if ( isset( $options['w2ski_text_field_1'] ) ){
+            return false; //means that the checkbox is ticked to remove the link
+        }
+        else return true;
+    }
+    
+    public function set_widget_frame( $nokey_but_link = 'nondefault' ){
+        $widget_frame_part1 = "<iframe style='float:left;' src='http://www.where2ski.net/widget/?sig=";
+        $widget_frame_part2 = "' width='300px' height='400px' frameBorder='0'></iframe>";
+        if ( $this->check_for_link() == false ){ $widget_frame_link = ""; }
+            else { $widget_frame_link = "<a href='http://where2ski.net' style='float:left; clear:both'>Checkout Where2Ski.net</a> "; }
+        
         $the_key = new W2Ski_key;
-        $widget_public_key = $the_key->fetch_API_key();
-        $this->widget_frame = $widget_frame_part1 . $widget_public_key . $widget_frame_part2;
+        if ( $nokey_but_link == 'default'){ $widget_public_key = '999999999'; }
+        else { $widget_public_key = $the_key->fetch_API_key(); }
+        
+        $this->widget_frame = $widget_frame_part1 . $widget_public_key . $widget_frame_part2 . $widget_frame_link;
     }
     
     
         /*
         * Create a shortcode that will output the necessary code. 
-        * The code should have this format:
+        * The code should have this format
         * <iframe src=“http://www.where2ski.net/widget/?sig=xxxxxxxxxx” width=“300px” height=“400px” frameBorder=“0”></iframe>
         */
     public function w2ski_shortcode( $atts ){
         $the_key = new W2Ski_key;
          if ( $the_key->fetch_API_key() == false ) {
-             $widget_message = 'Please add API key';
-             return $widget_message;
+             if ( $this->check_for_link() == true ) {
+                 $this->set_widget_frame ('default');
+                 return $this->get_widget_frame();     
+             } else { $widget_message = 'Please add API key';
+                      return $widget_message;  }
+             
          }
         else{
-            $this->set_widget_frame ();
+            $this->set_widget_frame();
             return $this->get_widget_frame();
         }
     }
-    
+
     /**
      * 
      * Creating the plugin settings page where the user
@@ -86,11 +102,21 @@ class W2Ski_Widget {
     function w2ski_settings_init(){
             register_setting(  'w2ski_widget', 'w2ski_settings' );
         
+           
+        
             add_settings_section(
               'w2ski_pluginPage_section',
                 __('Widget Activation', 'w2s-stp'),
                 array( $this, 'w2ski_settings_section_callback'),
                 'w2ski_widget'
+            );
+        
+            add_settings_field(
+                'w2ski_text_field_1',
+                __( 'Remove link credit', 'w2s-stp'),
+                array( $this, 'w2ski_text_field_1_render' ),
+                'w2ski_widget',
+                'w2ski_pluginPage_section'
             );
         
             add_settings_field(
@@ -102,16 +128,42 @@ class W2Ski_Widget {
             );
     }
     
+    function w2ski_settings_section_link_callback(){
+        
+        
+    }
     
     function w2ski_settings_section_callback(){
-        echo __( 'You need to contact the Where2Ski.net website admin and get an activation code from him.', 'w2s-stp' );
+        
+        $link_text = '<p>Please support this plugin by allowing a credit link after the widget. Thank you for your support</p>';
+        echo __($link_text, 'w2s-stp');
+        
+        
+        $code_text = '<p class="w2s-opt">You need to contact the Where2Ski.net website admin and get an activation code from him.</p>';
+        echo __($code_text, 'w2s-stp');
+        
+        
+        
+    }
+    
+    function w2ski_text_field_1_render(){
+            $options = get_option( 'w2ski_settings' );
+            if ( !isset( $options['w2ski_text_field_1'] )) {
+                $options['w2ski_text_field_1'] = 0;
+            }
+        
+            $html = '<input type="checkbox" name="w2ski_settings[w2ski_text_field_1]" value="1"' . checked( 1, $options['w2ski_text_field_1'], false ) . '/>';
+           echo $html;
     }
     
     function w2ski_text_field_0_render(){
             $options = get_option( 'w2ski_settings' );
             ?>
-            <input type='text' name='w2ski_settings[w2ski_text_field_0]' value='<?php echo $options['w2ski_text_field_0']; ?>'>
-            <?php 
+            <input type='text' class="w2s-opt" name='w2ski_settings[w2ski_text_field_0]' value='<?php echo $options['w2ski_text_field_0'];?>'> <?php 
+            if ($this->check_for_link() == true) { 
+                $support_text = "<p class='w2s-opt2'>There is no need for a key because you are supporting us :)</p>";
+                echo $support_text; }
+            
         
     }
     
@@ -127,6 +179,7 @@ class W2Ski_Widget {
         add_action( 'admin_menu' , array($this, 'w2ski_add_admin_menu') );
         add_action( 'admin_menu', array($this, 'w2ski_settings_init') );
         add_action( 'admin_enqueue_scripts', array($this, 'w2ski_load_admin_js') );
+        add_action( 'admin_enqueue_scripts', array($this, 'w2ski_load_admin_css') );
         add_action( 'widgets_init', array($this, 'w2ski_load_widget') );
     }
     
@@ -136,6 +189,12 @@ class W2Ski_Widget {
 
         wp_enqueue_script( 'jquery_validator' );
         wp_enqueue_script( 'custom_w2s_js' );
+    }
+    
+    public function w2ski_load_admin_css(){
+        wp_register_style( 'custom_w2s_css', plugins_url('/css/w2s.css', __FILE__), false, null);
+        
+        if ($this->check_for_link() == true ) { wp_enqueue_style('custom_w2s_css'); }
     }
     
     function w2ski_load_widget() {
