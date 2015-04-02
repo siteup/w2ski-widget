@@ -35,6 +35,9 @@ option will exist in future releases.
 
 == Changelog ==
 
+** version 0.1.3 **
+Updated description field 
+
 ** version 0.1.2 **
 Added option to remove the link
 
