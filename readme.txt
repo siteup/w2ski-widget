@@ -33,6 +33,10 @@ This section describes how to install the plugin and get it working.
 Yes, you should talk with the where2ski.net admin and ask for a key. The process is in development so that a more automated
 option will exist in future releases.
 
+== Screenshots ==
+1. The widget is loaded and two resorts were selected
+2. Hitting the compare button we get some basic info about the selected resorts
+
 == Changelog ==
 
 ** version 0.1.3 **
